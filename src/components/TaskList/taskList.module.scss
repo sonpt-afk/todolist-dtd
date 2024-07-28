@@ -26,3 +26,12 @@
         text-decoration: line-through;
     }
 }
+
+.taskActions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.taskBtn {
+    background-color: greenyellow;
+}
