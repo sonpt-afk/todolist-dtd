@@ -6,10 +6,11 @@ interface TaskListProps {
   doneTaskList?: boolean;
   todos: Todo[];
   handleDoneTodo: (id: string, done: boolean) => void;
+  startEditTodo: (id: string) => void;
 }
 
 const TaskList = (props: TaskListProps) => {
-  const { doneTaskList, todos, handleDoneTodo } = props;
+  const { doneTaskList, todos, handleDoneTodo, startEditTodo } = props;
 
   return (
     <div>
@@ -33,7 +34,14 @@ const TaskList = (props: TaskListProps) => {
               {todo.name}
             </span>
             <div className={styles.taskActions}>
-              <button className={styles.taskBtn}>🖊</button>
+              <button
+                className={styles.taskBtn}
+                onClick={() => {
+                  startEditTodo(todo.id);
+                }}
+              >
+                🖊
+              </button>
               <button className={styles.taskBtn}>❌</button>
             </div>
           </div>
