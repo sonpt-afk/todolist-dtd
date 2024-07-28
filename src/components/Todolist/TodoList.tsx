@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "./todoList.module.scss";
 import TaskList from "../TaskList/";
 import TaskInput from "../TaskInput";
@@ -10,6 +10,7 @@ const TodoList = () => {
   const doneTodos = todos.filter((todo) => todo.done);
   const notdoneTodos = todos.filter((todo) => !todo.done);
   const [currentTodo, setCurrentTodo] = useState<Todo | null>(null);
+  const [deleteTodo, setDeleteTodo] = useState<Todo | null>(null);
   const addTodo = (name: string) => {
     const todo: Todo = {
       name,
@@ -37,6 +38,16 @@ const TodoList = () => {
     }
   };
 
+  const startDeleteTodo = (id: string) => {
+    if (currentTodo) {
+      setCurrentTodo(null);
+    }
+    const foundTodo = todos.find((todo) => todo.id === id);
+    if (foundTodo) {
+      setTodos(todos.filter((todo) => todo.id !== foundTodo.id));
+    }
+  };
+
   const editTodo = (name: string) => {
     setCurrentTodo((prev) => {
       if (prev) {
@@ -57,6 +68,18 @@ const TodoList = () => {
     });
     setCurrentTodo(null);
   };
+  useEffect(() => {
+    if (todos.length > 0) {
+      localStorage.setItem("todos", JSON.stringify(todos));
+    }
+  }, [todos]);
+
+  useEffect(() => {
+    const storedTodos = localStorage.getItem("todos");
+    if (storedTodos) {
+      setTodos(JSON.parse(storedTodos));
+    }
+  }, []);
   return (
     <div className={styles.todoList}>
       <div className={styles.todoListContainer}>
@@ -70,12 +93,14 @@ const TodoList = () => {
           todos={notdoneTodos}
           handleDoneTodo={handleDoneTodo}
           startEditTodo={startEditTodo}
+          startDeleteTodo={startDeleteTodo}
         />
         <TaskList
           doneTaskList
           todos={doneTodos}
           handleDoneTodo={handleDoneTodo}
           startEditTodo={startEditTodo}
+          startDeleteTodo={startDeleteTodo}
         />
       </div>
     </div>
