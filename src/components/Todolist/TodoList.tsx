@@ -1,85 +1,109 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./todoList.module.scss";
 import TaskList from "../TaskList/";
 import TaskInput from "../TaskInput";
 import { Todo } from "../../@types/todo.type";
-import { useState } from "react";
+import apiClient from "../../api/apiClient";
+
 const TodoList = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
-
-  const doneTodos = todos.filter((todo) => todo.done);
-  const notdoneTodos = todos.filter((todo) => !todo.done);
   const [currentTodo, setCurrentTodo] = useState<Todo | null>(null);
-  const [deleteTodo, setDeleteTodo] = useState<Todo | null>(null);
-  const addTodo = (name: string) => {
-    const todo: Todo = {
-      name,
-      done: false,
-      id: new Date().toISOString(),
+
+  useEffect(() => {
+    const fetchTodos = async () => {
+      try {
+        const response = await apiClient.get<Todo[]>("/todos?_limit=10");
+        setTodos(response.data);
+      } catch (error) {
+        console.error("Error fetching todos:", error);
+      }
     };
-    setTodos((prevTodos) => [...prevTodos, todo]);
-  };
+    fetchTodos();
+  }, []);
 
-  const handleDoneTodo = (id: string, done: boolean) => {
-    setTodos((prev) => {
-      return prev.map((todo) => {
-        if (todo.id === id) {
-          return { ...todo, done };
-        }
-        return todo;
+  const doneTodos = todos.filter((todo) => todo.completed);
+  const notdoneTodos = todos.filter((todo) => !todo.completed);
+
+  const addTodo = async (title: string) => {
+    try {
+      const response = await apiClient.post<Todo>("/todos", {
+        title,
+        completed: false,
+        userId: 1,
       });
-    });
+      setTodos((prevTodos) => [response.data, ...prevTodos]);
+    } catch (error) {
+      console.error("Error adding todo:", error);
+    }
   };
 
-  const startEditTodo = (id: string) => {
+  const handleDoneTodo = async (id: number, completed: boolean) => {
+    const todoToUpdate = todos.find((todo) => todo.id === id);
+    if (!todoToUpdate) return;
+
+    const updatedTodo = { ...todoToUpdate, completed };
+
+    try {
+      await apiClient.put(`/todos/${id}`, updatedTodo);
+      setTodos((prev) => {
+        return prev.map((todo) => {
+          if (todo.id === id) {
+            return updatedTodo;
+          }
+          return todo;
+        });
+      });
+    } catch (error) {
+      console.error("Error updating todo:", error);
+    }
+  };
+
+  const startEditTodo = (id: number) => {
     const foundTodo = todos.find((todo) => todo.id === id);
     if (foundTodo) {
       setCurrentTodo(foundTodo);
     }
   };
 
-  const startDeleteTodo = (id: string) => {
-    if (currentTodo) {
-      setCurrentTodo(null);
-    }
-    const foundTodo = todos.find((todo) => todo.id === id);
-    if (foundTodo) {
-      setTodos(todos.filter((todo) => todo.id !== foundTodo.id));
-    }
-  };
-
-  const editTodo = (name: string) => {
+  const editTodo = (title: string) => {
     setCurrentTodo((prev) => {
       if (prev) {
-        return { ...prev, name };
-      } // tra ve Todo
-      return null; // tra ve null
+        return { ...prev, title };
+      }
+      return null;
     });
   };
 
-  const finishEditTodo = () => {
-    setTodos((prev) => {
-      return prev.map((todo) => {
-        if (todo.id === (currentTodo as Todo)?.id) {
-          return currentTodo as Todo;
-        }
-        return todo;
-      });
-    });
-    setCurrentTodo(null);
+  const finishEditTodo = async () => {
+    if (currentTodo) {
+      try {
+        await apiClient.put(`/todos/${currentTodo.id}`, {
+          title: currentTodo.title,
+        });
+        setTodos((prev) => {
+          return prev.map((todo) => {
+            if (todo.id === currentTodo.id) {
+              return currentTodo;
+            }
+            return todo;
+          });
+        });
+        setCurrentTodo(null);
+      } catch (error) {
+        console.error("Error updating todo:", error);
+      }
+    }
   };
-  useEffect(() => {
-    if (todos.length > 0) {
-      localStorage.setItem("todos", JSON.stringify(todos));
-    }
-  }, [todos]);
 
-  useEffect(() => {
-    const storedTodos = localStorage.getItem("todos");
-    if (storedTodos) {
-      setTodos(JSON.parse(storedTodos));
+  const startDeleteTodo = async (id: number) => {
+    try {
+      await apiClient.delete(`/todos/${id}`);
+      setTodos(todos.filter((todo) => todo.id !== id));
+    } catch (error) {
+      console.error("Error deleting todo:", error);
     }
-  }, []);
+  };
+
   return (
     <div className={styles.todoList}>
       <div className={styles.todoListContainer}>

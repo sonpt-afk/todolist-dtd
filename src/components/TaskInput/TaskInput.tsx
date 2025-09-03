@@ -3,22 +3,22 @@ import styles from "./taskInput.module.scss";
 import { Todo } from "../../@types/todo.type";
 
 interface TaskInputProps {
-  addTodo: (name: string) => void;
-  editTodo: (name: string) => void;
+  addTodo: (title: string) => void;
+  editTodo: (title: string) => void;
   currentTodo: Todo | null;
   finishEditTodo: () => void;
 }
 
 const TaskInput = (props: TaskInputProps) => {
   const { addTodo, currentTodo, editTodo, finishEditTodo } = props;
-  const [name, setName] = useState<string>("");
+  const [title, setTitle] = useState<string>("");
 
   const onChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     if (currentTodo) {
       editTodo(value);
     } else {
-      setName(value);
+      setTitle(value);
     }
   };
 
@@ -27,8 +27,8 @@ const TaskInput = (props: TaskInputProps) => {
     if (currentTodo) {
       finishEditTodo();
     } else {
-      addTodo(name);
-      setName("");
+      addTodo(title);
+      setTitle("");
     }
   };
   return (
@@ -39,7 +39,7 @@ const TaskInput = (props: TaskInputProps) => {
           type="text"
           className={styles.input}
           placeholder="input a task"
-          value={currentTodo ? currentTodo.name : name}
+          value={currentTodo ? currentTodo.title : title}
           onChange={onChangeInput}
         />
         <button type="submit" className={styles.button}>

@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import styles from "./taskList.module.scss";
 import { Todo } from "../../@types/todo.type";
 
 interface TaskListProps {
   doneTaskList?: boolean;
   todos: Todo[];
-  handleDoneTodo: (id: string, done: boolean) => void;
-  startEditTodo: (id: string) => void;
-  startDeleteTodo: (id: string) => void;
+  handleDoneTodo: (id: number, completed: boolean) => void;
+  startEditTodo: (id: number) => void;
+  startDeleteTodo: (id: number) => void;
 }
 
 const TaskList = (props: TaskListProps) => {
@@ -24,21 +24,21 @@ const TaskList = (props: TaskListProps) => {
       <h2 className={styles.title}>
         {doneTaskList ? "Hoàn thành" : "Chưa hoàn thành"}
       </h2>
-      <h2 className={styles.tasks}>
+      <div className={styles.tasks}>
         {todos.map((todo) => (
           <div className={styles.task} key={todo.id}>
             <input
               type="checkbox"
               className={styles.taskCheckbox}
-              checked={todo.done}
+              checked={todo.completed}
               onChange={(e) => handleDoneTodo(todo.id, e.target.checked)}
             />
             <span
               className={`${styles.taskName} ${
-                todo.done ? styles.taskNameDone : ""
+                todo.completed ? styles.taskNameDone : ""
               }`}
             >
-              {todo.name}
+              {todo.title}
             </span>
             <div className={styles.taskActions}>
               <button
@@ -60,7 +60,7 @@ const TaskList = (props: TaskListProps) => {
             </div>
           </div>
         ))}
-      </h2>
+      </div>
     </div>
   );
 };
