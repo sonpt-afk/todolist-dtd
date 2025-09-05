@@ -41,57 +41,32 @@ const TodoList = () => {
     const todoToUpdate = todos.find((todo) => todo.id === id);
     if (!todoToUpdate) return;
 
-    const updatedTodo = { ...todoToUpdate, completed };
-
     try {
-      await apiClient.put(`/todos/${id}`, updatedTodo);
-      setTodos((prev) => {
-        return prev.map((todo) => {
-          if (todo.id === id) {
-            return updatedTodo;
-          }
-          return todo;
-        });
-      });
+      const { data } = await apiClient.put<Todo>(`/todos/${id}`, { ...todoToUpdate, completed });
+      setTodos((prev) => prev.map((t) => (t.id === id ? data : t)));
     } catch (error) {
       console.error("Error updating todo:", error);
     }
   };
 
   const startEditTodo = (id: number) => {
-    const foundTodo = todos.find((todo) => todo.id === id);
-    if (foundTodo) {
-      setCurrentTodo(foundTodo);
-    }
+    setCurrentTodo(todos.find((todo) => todo.id === id) ?? null);
   };
 
   const editTodo = (title: string) => {
-    setCurrentTodo((prev) => {
-      if (prev) {
-        return { ...prev, title };
-      }
-      return null;
-    });
+    setCurrentTodo((prev) => (prev ? { ...prev, title } : null));
   };
 
   const finishEditTodo = async () => {
-    if (currentTodo) {
-      try {
-        await apiClient.put(`/todos/${currentTodo.id}`, {
-          title: currentTodo.title,
-        });
-        setTodos((prev) => {
-          return prev.map((todo) => {
-            if (todo.id === currentTodo.id) {
-              return currentTodo;
-            }
-            return todo;
-          });
-        });
-        setCurrentTodo(null);
-      } catch (error) {
-        console.error("Error updating todo:", error);
-      }
+    if (!currentTodo) return;
+    try {
+      const { data } = await apiClient.put<Todo>(`/todos/${currentTodo.id}`, {
+        title: currentTodo.title
+      });
+      setTodos((prev) => prev.map((t) => (t.id === data.id ? data : t)));
+      setCurrentTodo(null);
+    } catch (error) {
+      console.error("Error updating todo:", error);
     }
   };
 
